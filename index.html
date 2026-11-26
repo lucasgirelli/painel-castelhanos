@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143f35">
+  <meta name="description" content="Painel de locações, recebimentos e despesas da casa em Castelhanos.">
+  <title>Painel de Locações | Castelhanos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="login-screen hidden" id="loginScreen">
+    <form class="login-card" id="loginForm">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none"><path d="M7 20.5 20 9l13 11.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 19v13h18V19M17 32v-8h6v8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 8v6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+      </span>
+      <span class="eyebrow">CASTELHANOS · GESTÃO DA LOCAÇÃO</span>
+      <h1>Entrar no painel</h1>
+      <label class="field"><span>E-mail</span><input type="email" id="loginEmail" required autocomplete="email"></label>
+      <label class="field"><span>Senha</span><input type="password" id="loginPassword" autocomplete="current-password"></label>
+      <button type="submit" class="button button-primary login-button">Entrar</button>
+      <button type="button" class="text-button" id="loginLinkBtn">Sem senha? Receber link por e-mail</button>
+      <p class="login-message" id="loginMessage" role="status"></p>
+    </form>
+  </div>
+  <div class="app-layout hidden" id="appLayout">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Painel Castelhanos">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none"><path d="M7 20.5 20 9l13 11.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 19v13h18V19M17 32v-8h6v8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 8v6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+        </span>
+        <span><strong>CASTELHANOS</strong><small>GESTÃO DA LOCAÇÃO</small></span>
+      </a>
+
+      <div class="property-card">
+        <span class="eyebrow">SUA PROPRIEDADE</span>
+        <strong>Casa em Castelhanos</strong>
+        <span>Até 12 hóspedes</span>
+      </div>
+
+      <nav class="main-nav" aria-label="Navegação principal">
+        <button class="nav-item active" type="button" data-page="dashboard"><span class="nav-icon">◫</span><span>Visão geral</span></button>
+        <button class="nav-item" type="button" data-page="calendar"><span class="nav-icon">▦</span><span>Calendário</span></button>
+        <button class="nav-item" type="button" data-page="bookings"><span class="nav-icon">▤</span><span>Locações</span><span id="navBookingCount" class="nav-count">0</span></button>
+        <button class="nav-item" type="button" data-page="expenses"><span class="nav-icon">◌</span><span>Despesas</span></button>
+        <button class="nav-item" type="button" data-page="reports"><span class="nav-icon">▥</span><span>Relatórios</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="privacy-note"><span class="privacy-dot" id="syncDot"></span><span id="syncStatus">Online</span></div>
+        <p>Dados salvos online e compartilhados com quem tem acesso. <span id="userEmail" class="user-email"></span></p>
+        <button type="button" class="side-link" id="sideBackupBtn">Baixar backup</button>
+        <button type="button" class="side-link" id="sideImportBtn">Importar backup para mesclar</button>
+        <button type="button" class="side-link" id="logoutBtn">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-heading">
+          <span class="eyebrow" id="pageKicker">ACOMPANHAMENTO DA CASA</span>
+          <h1 id="pageTitle">Visão geral</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="year-control"><span>ANO</span><select id="yearFilter" aria-label="Filtrar por ano"></select></label>
+          <button type="button" class="button button-quiet" id="exportCsvBtn" title="Baixar locações e despesas em CSV">Exportar CSV</button>
+          <button type="button" class="button button-primary" id="newBookingBtn"><span class="plus">+</span> Nova locação</button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <section class="page active" id="page-dashboard">
+          <div class="welcome-row">
+            <div>
+              <h2>Seu resumo financeiro</h2>
+              <p id="dashboardCaption">Acompanhe os valores das reservas e as despesas da propriedade.</p>
+            </div>
+            <button type="button" class="button button-outline" id="newExpenseBtn"><span class="plus">+</span> Registrar despesa</button>
+          </div>
+
+          <div class="metric-grid" id="metricGrid"></div>
+
+          <div class="dashboard-grid">
+            <section class="panel chart-panel">
+              <div class="panel-heading">
+                <div><h3>Movimento ao longo do ano</h3><p>Valor das reservas por mês de entrada e despesas lançadas</p></div>
+                <div class="chart-legend"><span><i class="legend-dot legend-reservation"></i>Reservas</span><span><i class="legend-dot legend-expense"></i>Despesas</span></div>
+              </div>
+              <div id="monthlyChart" class="monthly-chart"></div>
+              <div class="chart-footnote">As reservas são agrupadas pelo check-in; as despesas, pela data do lançamento.</div>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><h3>Próximas entradas</h3><p>Reservas com check-in próximo</p></div><button type="button" class="text-button" data-goto="bookings">Ver todas</button></div>
+              <div id="upcomingList" class="compact-list"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><h3>Pagamentos pendentes</h3><p>Parcelas em aberto ou saldo da reserva</p></div><span class="heading-badge" id="pendingCount">0</span></div>
+              <div id="pendingList" class="compact-list"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><h3>Lançamentos recentes</h3><p>Últimas locações cadastradas</p></div><button type="button" class="text-button" data-goto="bookings">Abrir lista</button></div>
+              <div id="recentList" class="compact-list"></div>
+            </section>
+          </div>
+
+          <div class="import-note" id="importNote">
+            <span class="import-note-icon">i</span>
+            <div><strong>Dados online</strong><span>Os lançamentos ficam salvos online e qualquer pessoa com acesso vê as mudanças na hora. Ao importar um backup, novos registros são acrescentados e registros com o mesmo código são atualizados; nenhum registro é apagado pelo importador.</span></div>
+            <button type="button" class="note-dismiss" aria-label="Fechar aviso" id="dismissImportNote">×</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-calendar">
+          <div class="section-heading">
+            <div><h2>Calendário de reservas</h2><p>Veja as hospedagens, entradas e saídas ao longo do mês.</p></div>
+          </div>
+          <div class="calendar-summary" id="calendarSummary"></div>
+          <div class="calendar-layout">
+            <section class="panel calendar-panel">
+              <div class="calendar-toolbar">
+                <button type="button" class="button button-quiet" id="calendarPrev">Anterior</button>
+                <h3 id="calendarMonthTitle">Mês de ano</h3>
+                <button type="button" class="button button-quiet" id="calendarToday">Hoje</button>
+                <button type="button" class="button button-quiet" id="calendarNext">Próximo</button>
+              </div>
+              <div class="calendar-weekdays" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+              <div class="calendar-legend"><span><i class="legend-dot legend-arrival"></i>Entrada</span><span><i class="legend-dot legend-stay"></i>Hospedagem</span><span><i class="legend-dot legend-departure"></i>Saída</span><span><i class="legend-dot legend-private"></i>Uso particular</span><span><i class="legend-dot legend-holiday"></i>Feriado</span></div>
+            </section>
+            <aside class="panel calendar-detail">
+              <div class="panel-heading"><div><span class="eyebrow">DETALHES DO DIA</span><h3 id="calendarSelectedTitle">Selecione uma data</h3><p id="calendarSelectedSubtitle">Entradas, saídas e hóspedes hospedados</p></div></div>
+              <div id="calendarDayDetails" class="calendar-day-details"></div>
+            </aside>
+          </div>
+          <p class="calendar-footnote">A noite do check-out não conta como diária ocupada. Se duas reservas coincidirem, o painel mostra ambas para facilitar a conferência. Os feriados incluem os nacionais, o estadual do Espírito Santo e os municipais de Anchieta.</p>
+        </section>
+
+        <section class="page" id="page-bookings">
+          <div class="section-heading">
+            <div><h2>Locações</h2><p>Cadastre locações pagas e uso particular, acompanhe as datas e pagamentos.</p></div>
+            <button type="button" class="button button-primary" id="newBookingBtnList"><span class="plus">+</span> Nova locação</button>
+          </div>
+          <div class="panel table-panel">
+            <div class="table-toolbar">
+              <label class="search-box"><span aria-hidden="true">⌕</span><input id="bookingSearch" type="search" placeholder="Buscar hóspede, canal ou tipo"></label>
+              <label class="filter-control"><span>Tipo</span><select id="bookingTypeFilter"><option value="">Todos</option><option value="rental">Locações pagas</option><option value="private">Uso particular</option></select></label>
+              <label class="filter-control"><span>Canal</span><select id="bookingChannelFilter"><option value="">Todos</option><option>Direto</option><option>Airbnb</option><option>Instagram</option><option>Outro</option></select></label>
+              <label class="filter-control"><span>Situação</span><select id="bookingStatusFilter"><option value="">Todas</option><option value="future">Futuras</option><option value="active">Em andamento</option><option value="done">Concluídas</option><option value="review">Revisar dados</option></select></label>
+              <span class="row-count" id="bookingCount"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>HÓSPEDE</th><th>CHECK-IN</th><th>CHECK-OUT</th><th>HÓSPEDES</th><th>VALOR</th><th>RECEBIDO</th><th>A RECEBER</th><th>SITUAÇÃO</th><th></th></tr></thead>
+                <tbody id="bookingsBody"></tbody>
+              </table>
+            </div>
+            <div class="table-empty hidden" id="bookingsEmpty"><div class="empty-icon">⌕</div><strong>Nenhuma locação encontrada</strong><span>Tente mudar os filtros ou cadastre uma nova reserva.</span></div>
+          </div>
+        </section>
+
+        <section class="page" id="page-expenses">
+          <div class="section-heading">
+            <div><h2>Despesas</h2><p>Registre faxina, roupas de cama, comissões, manutenção e outros custos.</p></div>
+            <button type="button" class="button button-primary" id="newExpenseBtnList"><span class="plus">+</span> Registrar despesa</button>
+          </div>
+          <div class="expense-summary" id="expenseSummary"></div>
+          <div class="panel table-panel">
+            <div class="table-toolbar">
+              <label class="search-box"><span aria-hidden="true">⌕</span><input id="expenseSearch" type="search" placeholder="Buscar descrição ou categoria"></label>
+              <label class="filter-control"><span>Categoria</span><select id="expenseCategoryFilter"><option value="">Todas</option><option>Limpeza</option><option>Roupa de cama</option><option>Comissão</option><option>Manutenção</option><option>Insumos</option><option>Contas</option><option>Outros</option></select></label>
+              <label class="filter-control"><span>Pagamento</span><select id="expenseStatusFilter"><option value="">Todos</option><option value="pago">Pagas</option><option value="pendente">Pendentes</option></select></label>
+              <span class="row-count" id="expenseCount"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>DATA</th><th>DESCRIÇÃO</th><th>CATEGORIA</th><th>PAGAMENTO</th><th>VALOR</th><th></th></tr></thead>
+                <tbody id="expensesBody"></tbody>
+              </table>
+            </div>
+            <div class="table-empty hidden" id="expensesEmpty"><div class="empty-icon">◌</div><strong>Nenhuma despesa encontrada</strong><span>Use “Registrar despesa” para adicionar um lançamento.</span></div>
+          </div>
+        </section>
+
+        <section class="page" id="page-reports">
+          <div class="section-heading">
+            <div><h2>Relatórios</h2><p>Compare os resultados anuais e entenda de onde vêm as reservas.</p></div>
+            <button type="button" class="button button-quiet" id="reportCsvBtn">Baixar CSV</button>
+          </div>
+          <div class="metric-grid report-metrics" id="reportMetricGrid"></div>
+          <section class="panel report-panel">
+            <div class="panel-heading"><div><h3>Comparativo anual</h3><p>Locações pagas e uso particular separados pelo ano do check-in; despesas pela data de lançamento.</p></div></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>ANO</th><th>LOCAÇÕES PAGAS</th><th>USO PARTICULAR</th><th>DIÁRIAS</th><th>VALOR RESERVADO</th><th>RECEBIDO</th><th>A RECEBER</th><th>DESPESAS</th><th>SALDO DE CAIXA</th></tr></thead>
+                <tbody id="annualReportBody"></tbody>
+              </table>
+            </div>
+          </section>
+          <div class="report-grid">
+            <section class="panel"><div class="panel-heading"><div><h3>Reservas por canal</h3><p>Distribuição no ano selecionado</p></div></div><div id="channelReport" class="channel-report"></div></section>
+            <section class="panel"><div class="panel-heading"><div><h3>Despesas por categoria</h3><p>Valores lançados no ano selecionado</p></div></div><div id="categoryReport" class="channel-report"></div></section>
+          </div>
+          <p class="report-footnote">O saldo de caixa é calculado como valores recebidos menos despesas cadastradas. Ele não substitui conciliação bancária ou contábil.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="modal" id="bookingDialog">
+    <form id="bookingForm" novalidate>
+      <div class="modal-heading"><div><span class="eyebrow">RESERVA DA CASA</span><h2 id="bookingModalTitle">Nova locação</h2></div><button class="icon-button" type="button" data-close="bookingDialog" aria-label="Fechar">×</button></div>
+      <input type="hidden" id="bookingId">
+      <div class="form-grid">
+        <label class="field"><span>Tipo de estadia</span><select id="bookingType"><option value="rental">Locação paga</option><option value="private">Uso particular</option></select></label>
+        <label class="field"><span id="bookingNameLabel">Nome do hóspede *</span><input required id="bookingName" autocomplete="name" placeholder="Nome completo"></label>
+        <label class="field rental-only"><span>Canal</span><select id="bookingChannel"><option>Direto</option><option>Airbnb</option><option>Instagram</option><option>Outro</option></select></label>
+        <label class="field rental-only"><span>Contrato</span><select id="bookingContract"><option value="assinado">Assinado</option><option value="pendente">Pendente</option><option value="não informado">Não informado</option></select></label>
+        <label class="field"><span>Check-in *</span><input required id="bookingCheckIn" type="date"></label>
+        <label class="field"><span>Check-out *</span><input required id="bookingCheckOut" type="date"></label>
+        <label class="field"><span>Horário de entrada</span><input id="bookingArrivalTime" type="time" value="12:00"></label>
+        <label class="field"><span>Horário de saída</span><input id="bookingDepartureTime" type="time" value="10:00"></label>
+        <label class="field"><span>Quantidade de hóspedes</span><input id="bookingGuests" type="number" min="1" max="30" placeholder="12"></label>
+        <label class="field rental-only"><span>Diária média (R$)</span><input id="bookingDailyRate" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <label class="field rental-only"><span>Valor total (R$) *</span><input required id="bookingTotal" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <label class="field rental-only"><span>Valor recebido (R$)</span><input id="bookingPaid" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <label class="field rental-only"><span>Faxina (R$)</span><input id="bookingCleaning" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <label class="field rental-only"><span>Roupas de cama (R$)</span><input id="bookingLinens" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <label class="field rental-only"><span>Comissão (R$)</span><input id="bookingCommission" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <div class="field field-wide schedule-field rental-only">
+          <div class="schedule-heading"><div><span>Parcelas combinadas</span><small>Quando houver parcelas, o recebido será atualizado pelos pagamentos marcados como pagos.</small></div><button type="button" class="text-button" id="addPaymentRow">+ Adicionar parcela</button></div>
+          <div id="paymentRows" class="payment-rows"></div>
+        </div>
+        <p class="field field-wide private-use-note hidden" id="privateUseNote">Esta estadia fica no calendário, mas não gera valores ou parcelas nos relatórios financeiros.</p>
+        <label class="field field-wide"><span>Observações</span><textarea id="bookingNotes" rows="3" placeholder="Informações úteis sobre a locação"></textarea></label>
+      </div>
+      <div class="modal-footer"><button type="button" class="button button-danger hidden" id="deleteBookingBtn">Excluir</button><span class="modal-footer-spacer"></span><button type="button" class="button button-quiet" data-close="bookingDialog">Cancelar</button><button type="submit" class="button button-primary">Salvar locação</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal modal-small" id="expenseDialog">
+    <form id="expenseForm" novalidate>
+      <div class="modal-heading"><div><span class="eyebrow">CONTROLE FINANCEIRO</span><h2 id="expenseModalTitle">Nova despesa</h2></div><button class="icon-button" type="button" data-close="expenseDialog" aria-label="Fechar">×</button></div>
+      <input type="hidden" id="expenseId">
+      <div class="form-grid">
+        <label class="field"><span>Data *</span><input required id="expenseDate" type="date"></label>
+        <label class="field"><span>Categoria</span><select id="expenseCategory"><option>Limpeza</option><option>Roupa de cama</option><option>Comissão</option><option>Manutenção</option><option>Insumos</option><option>Contas</option><option>Outros</option></select></label>
+        <label class="field field-wide"><span>Descrição *</span><input required id="expenseDescription" placeholder="Ex.: faxina após a saída"></label>
+        <label class="field"><span>Valor (R$) *</span><input required id="expenseAmount" type="number" min="0" step="0.01" placeholder="0,00"></label>
+        <label class="field"><span>Pagamento</span><select id="expenseStatus"><option value="pago">Pago</option><option value="pendente">Pendente</option></select></label>
+        <label class="field field-wide"><span>Observações</span><textarea id="expenseNotes" rows="3" placeholder="Opcional"></textarea></label>
+      </div>
+      <div class="modal-footer"><button type="button" class="button button-danger hidden" id="deleteExpenseBtn">Excluir</button><span class="modal-footer-spacer"></span><button type="button" class="button button-quiet" data-close="expenseDialog">Cancelar</button><button type="submit" class="button button-primary">Salvar despesa</button></div>
+    </form>
+  </dialog>
+
+  <input type="file" id="importInput" accept="application/json,.json" hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="holidays.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
